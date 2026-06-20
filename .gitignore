@@ -4,5 +4,4 @@ __pycache__/
 .env
 GEMINI.md
 HISTORY.md
-stock_mapping.json
 STOCK_EXPERT_SPEC.md

@@ -10,11 +10,6 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 import matplotlib.patches as mpatches
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from rich.columns import Columns
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
-from rich.text import Text
 
 from signals import StockSignalEngine
 
@@ -48,116 +43,12 @@ plt.rcParams['axes.unicode_minus'] = False
 # -------------------------------------------------------------
 
 class StockExpertSystem(StockSignalEngine):
-    def __init__(self, symbol: Optional[str] = None, is_gui: bool = False):
-        color_system = "standard" if is_gui else "auto"
-        self.console = Console(width=96, force_terminal=is_gui or None, color_system=color_system)
+    def __init__(self, symbol: Optional[str] = None, **kwargs):
         super().__init__(symbol)
 
     def _format_level(self, value: Optional[float]) -> str:
         return "---" if value is None or math.isnan(value) else f"{value:.2f}"
 
-    def show_cli_dashboard(self, return_str: bool = False) -> Optional[str]:
-        snapshot = self.build_snapshot()
-        color = "red" if snapshot.change > 0 else "green"
-        
-        # 格式化日期為 YYYY/MM/DD
-        display_date = snapshot.last_date.replace("-", "/")
-        
-        # 盤中標籤動態切換
-        price_label = "最新價格" if snapshot.is_intraday else "收盤價"
-
-        header_text = Text.assemble(
-            (f"{snapshot.stock_name} ({snapshot.symbol}) 分析建議\n", "bold white"),
-            (f"最後交易日: {display_date}  ", "dim"),
-            (f"{price_label}: {snapshot.close:.2f}  ", "bold yellow"),
-            (f"{'▲' if snapshot.change > 0 else '▼'} {abs(snapshot.change):.2f} ({snapshot.pct_change:+.2f}%)\n", color),
-            (f"當日成交量: {snapshot.volume/1000:,.0f} 張  ", "dim"),
-            (f"5日均量: {snapshot.vma5/1000:,.0f} 張\n" if not math.isnan(snapshot.vma5) else "5日均量: ---\n", "dim"),
-            (f"ATR14: {snapshot.atr14:.2f}  " if snapshot.atr14 is not None else "ATR14: ---  ", "magenta"),
-            (f"20日狀態: {snapshot.breakout_status}  ", "bold white"),
-            (f"風險: {snapshot.risk_note}", "cyan"),
-        )
-
-        tech_table = Table(title="技術指標", border_style="cyan")
-        tech_table.add_column("指標", style="dim")
-        tech_table.add_column("數值")
-        tech_table.add_column("狀態判定")
-
-        rsi_status = "中性"
-        if snapshot.rsi14 is not None:
-            if snapshot.rsi14 > 70:
-                rsi_status = "超買"
-            elif snapshot.rsi14 < 30:
-                rsi_status = "超賣"
-        tech_table.add_row("RSI (14)", "---" if snapshot.rsi14 is None else f"{snapshot.rsi14:.1f}", rsi_status)
-
-        kd_value = "---/---"
-        kd_status = "資料不足"
-        if snapshot.kd_k is not None and snapshot.kd_d is not None:
-            kd_value = f"{snapshot.kd_k:.1f}/{snapshot.kd_d:.1f}"
-            kd_status = "金叉" if snapshot.kd_k > snapshot.kd_d else "死叉"
-        tech_table.add_row("K/D 指標", kd_value, kd_status)
-
-        adx_value = "---"
-        adx_status = "資料不足"
-        if snapshot.adx14 is not None and snapshot.di_plus is not None and snapshot.di_minus is not None:
-            adx_value = f"{snapshot.adx14:.2f} / +DI {snapshot.di_plus:.2f} / -DI {snapshot.di_minus:.2f}"
-            if snapshot.adx14 >= 25:
-                adx_status = "趨勢成立"
-            elif snapshot.adx14 < 20:
-                adx_status = "盤整震盪"
-            else:
-                adx_status = "趨勢醞釀"
-        tech_table.add_row("ADX / DI", adx_value, adx_status)
-
-        tech_table.add_row("均線排列", "SMA 5/20/60", snapshot.trend_status)
-
-        rs_value = "---"
-        rs_status = "資料不足"
-        if snapshot.relative_strength_20d is not None:
-            rs_value = f"{snapshot.relative_strength_20d * 100:+.2f}%"
-            if snapshot.relative_strength_20d > 0:
-                rs_status = f"強於{snapshot.benchmark_name}"
-            elif snapshot.relative_strength_20d < 0:
-                rs_status = f"弱於{snapshot.benchmark_name}"
-            else:
-                rs_status = "與大盤同步"
-        tech_table.add_row(f"相對{snapshot.benchmark_name}", rs_value, rs_status)
-
-        force_status = "警示" if "主力" in snapshot.force_alert[0] else "正常"
-        tech_table.add_row("主力警示", snapshot.force_alert[0], force_status)
-
-        tech_table.add_row("20日狀態", snapshot.breakout_status, snapshot.breakout_status)
-        tech_table.add_row("量價關係", snapshot.divergence[0], "背離" if "背離" in snapshot.divergence[0] else "同步")
-
-        price_table = Table(title="關鍵價位", border_style="magenta")
-        price_table.add_row("壓力區", f"[red]{self._format_level(snapshot.resistance)}[/]")
-        price_table.add_row("支撐區", f"[green]{self._format_level(snapshot.support)}[/]")
-        price_table.add_row("停損參考", f"[dim]{self._format_level(snapshot.stop_loss)}[/]")
-        price_table.add_row("ATR(14)", "---" if snapshot.atr14 is None else f"[magenta]{snapshot.atr14:.2f}[/]")
-        price_table.add_row(
-            "20日高/低",
-            f"{self._format_level(snapshot.breakout_high_20)} / {self._format_level(snapshot.breakout_low_20)}",
-        )
-
-        advice_panel = Panel(
-            f"[bold yellow]操作決策[/]\n{snapshot.advice_text}\n\n"
-            f"[bold cyan]主力動向[/]\n[{snapshot.force_alert[1]}]{snapshot.force_alert[0]}[/]\n\n"
-            f"[bold magenta]風險摘要[/]\n{snapshot.risk_note}\n\n"
-            f"[dim]支撐觀察: {self._format_level(snapshot.support)}[/]",
-            border_style="yellow",
-            title="專家系統建議",
-        )
-
-        if return_str:
-            with self.console.capture() as capture:
-                self.console.print(Panel(header_text, border_style="bright_blue"))
-                self.console.print(Columns([tech_table, price_table, advice_panel]))
-            return capture.get()
-
-        self.console.print(Panel(header_text, border_style="bright_blue"))
-        self.console.print(Columns([tech_table, price_table, advice_panel]))
-        return None
 
     def get_line_report(self) -> str:
         snapshot = self.build_snapshot()
