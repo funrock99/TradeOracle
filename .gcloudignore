@@ -1,0 +1,13 @@
+.git
+.gitignore
+__pycache__
+.dexter
+reports/
+cache/
+*.bat
+.env
+.md
+venv/
+.gemini/
+.vscode/
+stock_mapping.json

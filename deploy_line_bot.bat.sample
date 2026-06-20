@@ -1,0 +1,45 @@
+@echo off
+setlocal enabledelayedexpansion
+
+:: ==========================================
+:: 設定區域與專案資訊
+:: ==========================================
+set REGION=your-gcp-region
+set PROJECT_ID=your-gcp-project-id
+set SERVICE_NAME=your-service-name
+
+:: 請在此填入您的 Cloud Storage 儲存桶名稱
+:: (需與您在 GCP 控制台建立的名稱一致)
+set BUCKET_NAME=your-gcs-bucket-name
+
+:: 請在此填入您的 Cloud Run 正式網址
+:: (若尚未取得，可先維持 temp.run.app，部署後再執行一次部署以更新)
+set CURRENT_URL=https://temp.run.app
+
+echo [1/2] 正在部署服務到 Cloud Run (專案: %PROJECT_ID%)...
+echo 設定: GCS 儲存桶 = %BUCKET_NAME%
+
+gcloud run deploy %SERVICE_NAME% ^
+  --source . ^
+  --region %REGION% ^
+  --allow-unauthenticated ^
+  --memory 2048Mi ^
+  --project %PROJECT_ID% ^
+  --set-secrets="LINE_CHANNEL_SECRET=LINE_CHANNEL_SECRET:latest" ^
+  --set-secrets="LINE_CHANNEL_ACCESS_TOKEN=LINE_CHANNEL_ACCESS_TOKEN:latest" ^
+  --set-env-vars="SERVER_URL=%CURRENT_URL%,GCS_BUCKET_NAME=%BUCKET_NAME%,GOOGLE_CLOUD_PROJECT=%PROJECT_ID%"
+
+if %ERRORLEVEL% EQU 0 (
+    echo.
+    echo ==========================================
+    echo [成功] 服務已部署完成 (含 Firestore 與 GCS 支援)！
+    echo ------------------------------------------
+    echo 網址: %CURRENT_URL%
+    echo 儲存桶: %BUCKET_NAME%
+    echo ==========================================
+) else (
+    echo.
+    echo [錯誤] 部署失敗，請檢查上述錯誤訊息。
+)
+
+pause

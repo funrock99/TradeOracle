@@ -1,0 +1,40 @@
+@echo off
+setlocal
+
+set REGION=your-gcp-region
+set PROJECT_ID=your-gcp-project-id
+set SERVICE_NAME=your-service-name
+
+echo ==========================================
+echo 更新 Cloud Run SERVER_URL 設定
+echo ==========================================
+echo.
+set /p CLOUD_RUN_URL="請貼上 Cloud Run 的 Service URL (例如 https://xxx.run.app): "
+
+if "%CLOUD_RUN_URL%"=="" (
+    echo [錯誤] 網址不能為空。
+    pause
+    exit /b
+)
+
+echo.
+echo [2/2] 正在更新環境變數...
+gcloud run services update %SERVICE_NAME% ^
+  --region %REGION% ^
+  --project %PROJECT_ID% ^
+  --update-env-vars="SERVER_URL=%CLOUD_RUN_URL%"
+
+if %ERRORLEVEL% EQU 0 (
+    echo.
+    echo ==========================================
+    echo [成功] SERVER_URL 已更新為: %CLOUD_RUN_URL%
+    echo ------------------------------------------
+    echo 現在請將 Webhook URL 設定為:
+    echo %CLOUD_RUN_URL%/callback
+    echo ==========================================
+) else (
+    echo.
+    echo [錯誤] 更新失敗。
+)
+
+pause
