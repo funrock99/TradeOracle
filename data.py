@@ -17,7 +17,7 @@ from urllib3.exceptions import InsecureRequestWarning
 
 REPORT_DIR = "reports"
 CACHE_DIR = "cache"
-MAPPING_PATH = "stock_mapping.json"
+
 
 # 多組 User-Agent 輪替
 USER_AGENTS = [
@@ -140,15 +140,16 @@ class StockDataManager:
     def _get_random_agent(self) -> str:
         return random.choice(USER_AGENTS)
 
-    def _load_mapping(self) -> Dict[str, str]:
-        if not os.path.exists(MAPPING_PATH):
-            return {}
-
+    def _load_mapping(self) -> dict:
+        import twstock
+        mapping = {}
         try:
-            with open(MAPPING_PATH, "r", encoding="utf-8") as file:
-                return json.load(file)
+            for code, info in twstock.codes.items():
+                if info.type == '股票' and len(code) == 4 and code.isdigit():
+                    mapping[code] = info.name.strip()
         except Exception:
-            return {}
+            pass
+        return mapping
 
     def _normalize_symbol(self, symbol: str) -> str:
         normalized = symbol.strip().upper()

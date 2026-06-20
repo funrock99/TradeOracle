@@ -47,15 +47,7 @@ TradeOracle 是一個基於 Python 的全自動化台股分析工具。系統能
 pip install -r requirements.txt
 ```
 
-### 2. 初始化股票名稱對應表 (首次執行)
-
-系統需要建立代碼與中文名稱的對應表，請先執行：
-
-```bash
-python update_stock_names.py
-```
-
-### 3. 啟動系統
+### 2. 啟動系統
 
 你可以根據需求選擇不同的介面啟動：
 
@@ -112,7 +104,7 @@ python update_stock_names.py
 * `gui.py`: 桌面版圖形使用者介面程式。
 * `stock_expert.py`: CLI 版本主程式。
 * `line_bot_app.py`: Line Bot 服務主程式。
-* `update_stock_names.py`: 股票代碼與名稱更新腳本。
+
 * `STOCK_EXPERT_SPEC.md`: 詳細的系統開發規格書。
 * `GEMINI.md` / `HISTORY.md`: Agent 開發規範與修復歷史紀錄。
 
