@@ -67,6 +67,26 @@ pip install -r requirements.txt
   ```
   *(註：需在 `.env` 中配置 `LINE_CHANNEL_SECRET` 與 `LINE_CHANNEL_ACCESS_TOKEN`)*
 
+## 🐳 Docker 部署 (Docker Deployment)
+
+本專案內建 `Dockerfile`，您可以輕鬆地將 Line Bot 服務打包成容器執行。
+
+### 部署步驟
+
+1. **建立映像檔 (Build Image)**：
+   在專案根目錄下執行：
+   ```bash
+   docker build -t trade-oracle-bot .
+   ```
+
+2. **執行容器 (Run Container)**：
+   執行時請帶入包含 LINE 金鑰的 `.env` 檔案，並將預設的 8080 埠號對應到主機：
+   ```bash
+   docker run -d -p 8080:8080 --env-file .env trade-oracle-bot
+   ```
+
+3. 容器啟動後，伺服器便會在背景運行。此時您可以搭配 `ngrok` (將 8080 埠號對外公開) 進行測試，或是將映像檔上傳並部署至任何支援 Docker 的伺服器環境。
+
 ## ☁️ GCP 部署 (Deploying Line Bot to Cloud Run)
 
 本專案支援將 Line Bot 部署至 Google Cloud Run，並搭配 Firestore 作為分析結果快取，以及 Cloud Storage 儲存技術分析圖表。
