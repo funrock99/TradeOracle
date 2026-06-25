@@ -4,6 +4,8 @@ TradeOracle 是一個基於 Python 的全自動化台股分析工具。系統能
 
 本專案採用最現代化的**「雙核心」**架構，提供：**Web 視覺化看板 (Vue 3 SPA)** 以及 **Line Bot 即時對話機器人**，滿足無論是在電腦前深度看盤，還是在外用手機秒查的需求。
 
+![Line Bot Screenshot](./docs/line_bot_screenshot.jpg)
+
 ## 🌟 核心功能 (Key Features)
 
 * **多重數據來源自動備援**：整合 `twstock` (盤中即時報價)、`yfinance` (歷史行情)、證交所/櫃買中心官方 API，以及 FinMind (備援)，確保資料的準確性與穩定性。
