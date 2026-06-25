@@ -72,6 +72,24 @@ python line_bot_app.py
 ```
 *(註：需在根目錄配置 `.env` 檔案填寫 `LINE_CHANNEL_SECRET` 與 `LINE_CHANNEL_ACCESS_TOKEN`)*
 
+## 🧪 單元測試 (Unit Testing)
+
+本專案採用 `pytest` 作為單元測試框架，針對核心的技術指標邏輯與資料輔助函式進行自動化驗證。
+
+### 執行測試
+
+請先確保已安裝 `pytest`，接著在專案根目錄下執行：
+```bash
+pip install pytest
+pytest tests/
+```
+
+### 測試涵蓋範圍
+
+* **趨勢狀態判定**：驗證系統在「多頭強勢」、「多頭拉回」、「空頭強勢」、「空頭反彈」等不同情境下的判讀精準度。
+* **跳動點進位 (Tick Size)**：測試 10 元至 1000 元以上各區間的股價進位邏輯，確保計算壓力與支撐點位時無浮點數誤差。
+* **代碼驗證**：確保不合法的台股代碼在第一時間被攔截，節省 API 請求資源。
+
 ## 🐳 Docker 部署 (Docker Deployment)
 
 本專案內建 `Dockerfile`，您可以輕鬆地將 Line Bot 服務打包成容器執行。
